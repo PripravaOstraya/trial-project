@@ -1,7 +1,6 @@
 package com.example.demo.entities;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.NotBlank;
 
 import java.time.LocalDate;
@@ -10,7 +9,6 @@ public class Guest {
     @NotNull
     private String id;
     @NotBlank
-    @Size(min = 1)
     private String name;
     @NotNull
     private LocalDate birthDate;
