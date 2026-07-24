@@ -44,7 +44,8 @@ public class GuestController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Guest not found");
 
         updGuest.setId(id);
-        return ResponseEntity.status(HttpStatus.OK).body(guestMap.put(id, updGuest));
+        guestMap.put(id, updGuest);
+        return ResponseEntity.status(HttpStatus.OK).body(updGuest);
     }
 
     @PatchMapping("/{id}")
@@ -73,5 +74,17 @@ public class GuestController {
         guestMap.remove(id);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    public void clearTestData() {
+        guestMap.clear();
+    }
+
+    public void addTestData(Guest guest) {
+        guestMap.put(guest.getId(), guest);
+    }
+
+    public Guest getGuestByIdForTest(String id) {
+        return guestMap.get(id);
     }
 }
