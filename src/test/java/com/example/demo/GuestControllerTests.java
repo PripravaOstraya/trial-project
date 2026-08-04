@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.controllers.GuestController;
 import com.example.demo.entities.Guest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +30,14 @@ public class GuestControllerTests {
     private MockMvc mockMvc;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private GuestController guestController;
 
     @BeforeEach
     void setUp() {
-        guestController.clearTestData();
+        guestController.getTestData().clear();
     }
 
     @Test
@@ -50,8 +54,8 @@ public class GuestControllerTests {
         Guest guest2 = new Guest("2", "Maria",
                 LocalDate.of(1999, 12, 2), "+22222222222");
 
-        guestController.addTestData(guest1);
-        guestController.addTestData(guest2);
+        guestController.getTestData().put(guest1.getId(), guest1);
+        guestController.getTestData().put(guest2.getId(), guest2);
 
         mockMvc.perform(get("/guests"))
                 .andExpect(status().isOk())
@@ -64,18 +68,12 @@ public class GuestControllerTests {
 
     @Test
     void shouldReturn201AndCreateGuest() throws Exception {
-        String guestJson = """
-                {
-                "id": "1",
-                "name": "Ivan",
-                "birthDate": "1999-12-01",
-                "phoneNumber": "+11111111111"
-                }
-                """;
+        Guest guest = new Guest("1", "Ivan",
+                LocalDate.of(1999, 12, 1), "+11111111111");
 
         mockMvc.perform(post("/guests")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(guestJson))
+                        .content(objectMapper.writeValueAsString(guest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.name").value("Ivan"))
@@ -85,38 +83,26 @@ public class GuestControllerTests {
 
     @Test
     void shouldSaveGuest() throws Exception {
-        String guestJson = """
-                {
-                "id": "1",
-                "name": "Ivan",
-                "birthDate": "1999-12-01",
-                "phoneNumber": "+11111111111"
-                }
-                """;
+        Guest guest = new Guest("1", "Ivan",
+                LocalDate.of(1999, 12, 1), "+11111111111");
 
         mockMvc.perform(post("/guests")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(guestJson))
+                        .content(objectMapper.writeValueAsString(guest)))
                 .andExpect(status().isCreated());
 
-        Guest savedGuest = guestController.getGuestByIdForTest("1");
+        Guest savedGuest = guestController.getTestData().get("1");
         assertNotNull(savedGuest);
     }
 
     @Test
     void shouldReturn400WhenNameIsBlank() throws Exception {
-        String guestJson = """
-                {
-                "id": "1",
-                "name": " ",
-                "birthDate": "1999-12-01",
-                "phoneNumber": "+11111111111"
-                }
-                """;
+        Guest guest = new Guest("1", " ",
+                LocalDate.of(1999, 12, 1), "+11111111111");
 
         mockMvc.perform(post("/guests")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(guestJson))
+                        .content(objectMapper.writeValueAsString(guest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -124,7 +110,7 @@ public class GuestControllerTests {
     void shouldReturnGuestWhenGuestExists() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
         mockMvc.perform(get("/guests/{id}", "1"))
                 .andExpect(status().isOk())
@@ -144,20 +130,14 @@ public class GuestControllerTests {
     void shouldUpdateGuest() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
-        String updGuestJson = """
-                {
-                "id": "1",
-                "name": "Petr",
-                "birthDate": "1999-12-02",
-                "phoneNumber": "+22222222222"
-                }
-                """;
+        Guest updGuest = new Guest("1", "Petr",
+                LocalDate.of(1999, 12, 2), "+22222222222");
 
         mockMvc.perform(put("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updGuestJson))
+                        .content(objectMapper.writeValueAsString(updGuest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.name").value("Petr"))
@@ -167,18 +147,12 @@ public class GuestControllerTests {
 
     @Test
     void shouldReturn404WhenUpdatingNonExistentGuest() throws Exception {
-        String updGuestJson = """
-                {
-                "id": "1",
-                "name": "Petr",
-                "birthDate": "1999-12-02",
-                "phoneNumber": "+22222222222"
-                }
-                """;
+        Guest updGuest = new Guest("1", "Petr",
+                LocalDate.of(1999, 12, 2), "+22222222222");
 
         mockMvc.perform(put("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updGuestJson))
+                        .content(objectMapper.writeValueAsString(updGuest)))
                 .andExpect(status().isNotFound());
     }
 
@@ -186,20 +160,14 @@ public class GuestControllerTests {
     void shouldReturn400WhenNewNameIsBlank() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
-        String updGuestJson = """
-                {
-                "id": "1",
-                "name": " ",
-                "birthDate": "1999-12-02",
-                "phoneNumber": "+22222222222"
-                }
-                """;
+        Guest updGuest = new Guest("1", " ",
+                LocalDate.of(1999, 12, 2), "+22222222222");
 
         mockMvc.perform(put("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updGuestJson))
+                        .content(objectMapper.writeValueAsString(updGuest)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -207,18 +175,14 @@ public class GuestControllerTests {
     void shouldUpdateMultipleFieldsAndKeepOthersIntact() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
-        String patchDataJson = """
-                {
-                "name": "Petr",
-                "birthDate": "1999-12-02"
-                }
-                """;
+        Guest patchData = new Guest(null, "Petr",
+                LocalDate.of(1999, 12, 2), null);
 
         mockMvc.perform(patch("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(patchDataJson))
+                        .content(objectMapper.writeValueAsString(patchData)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.name").value("Petr"))
@@ -228,16 +192,12 @@ public class GuestControllerTests {
 
     @Test
     void shouldReturn404WhenPatchingNonExistentGuest() throws Exception {
-        String patchDataJson = """
-                {
-                "name": "Petr",
-                "birthDate": "1999-12-02"
-                }
-                """;
+        Guest patchData = new Guest(null, "Petr",
+                LocalDate.of(1999, 12, 2), null);
 
         mockMvc.perform(patch("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(patchDataJson))
+                        .content(objectMapper.writeValueAsString(patchData)))
                 .andExpect(status().isNotFound());
     }
 
@@ -245,16 +205,14 @@ public class GuestControllerTests {
     void shouldReturnUnchangedGuestWhenPatchBodyIsEmpty() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
-        String patchDataJson = """
-                {
-                }
-                """;
+        Guest patchData = new Guest(null, null,
+                null, null);
 
         mockMvc.perform(patch("/guests/{id}", "1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(patchDataJson))
+                        .content(objectMapper.writeValueAsString(patchData)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.name").value("Ivan"))
@@ -266,12 +224,12 @@ public class GuestControllerTests {
     void shouldReturn204AndDeleteGuest() throws Exception {
         Guest guest = new Guest("1", "Ivan",
                 LocalDate.of(1999, 12, 1), "+11111111111");
-        guestController.addTestData(guest);
+        guestController.getTestData().put(guest.getId(), guest);
 
         mockMvc.perform(delete("/guests/{id}", "1"))
                 .andExpect(status().isNoContent());
 
-        Guest savedGuest = guestController.getGuestByIdForTest("1");
+        Guest savedGuest = guestController.getTestData().get("1");
         assertNull(savedGuest);
     }
 

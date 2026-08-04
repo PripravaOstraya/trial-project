@@ -76,15 +76,7 @@ public class GuestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    public void clearTestData() {
-        guestMap.clear();
-    }
-
-    public void addTestData(Guest guest) {
-        guestMap.put(guest.getId(), guest);
-    }
-
-    public Guest getGuestByIdForTest(String id) {
-        return guestMap.get(id);
+    public Map<String, Guest> getTestData() {
+        return guestMap;
     }
 }
