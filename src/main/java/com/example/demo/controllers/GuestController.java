@@ -1,82 +1,57 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.requests.GuestRequest;
+import com.example.demo.dto.responses.GuestResponse;
 import com.example.demo.entities.Guest;
+import com.example.demo.mappers.GuestMapper;
+import com.example.demo.services.GuestService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/guests")
 public class GuestController {
-    private Map<String, Guest> guestMap = new HashMap<>();
+    private GuestService guestService;
+    private GuestMapper guestMapper;
+
+    public GuestController(GuestService guestService, GuestMapper guestMapper) {
+        this.guestService = guestService;
+        this.guestMapper = guestMapper;
+    }
 
     @GetMapping
-    public ResponseEntity<List<Guest>> listGuests(){
-        return ResponseEntity.status(HttpStatus.OK).body(guestMap.values().stream().toList());
+    public ResponseEntity<List<GuestResponse>> listGuests(){
+        List<Guest> guests = guestService.listGuests();
+
+        return ResponseEntity.status(HttpStatus.OK).body(guestMapper.toResponseList(guests));
     }
 
     @PostMapping
-    public ResponseEntity<Guest> createGuest(@Valid @RequestBody Guest newGuest) {
-        guestMap.put(newGuest.getId(), newGuest);
+    public ResponseEntity<GuestResponse> createGuest(@Valid @RequestBody GuestRequest request) {
+        Guest newGuest = guestMapper.toEntity(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newGuest);
+        Guest createdGuest = guestService.createGuest(newGuest);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(guestMapper.toResponse(createdGuest));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Guest> getGuestById(@PathVariable String id) {
-        Guest guest = guestMap.get(id);
+    public ResponseEntity<GuestResponse> getGuestById(@PathVariable String id) {
+        Guest guest = guestService.getGuestById(id);
 
-        if (guest == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Guest not found");
-
-        return ResponseEntity.status(HttpStatus.OK).body(guest);
+        return ResponseEntity.status(HttpStatus.OK).body(guestMapper.toResponse(guest));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Guest> updateGuest(@PathVariable String id, @Valid @RequestBody Guest updGuest) {
-        if (!guestMap.containsKey(id))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Guest not found");
+    public ResponseEntity<GuestResponse> updateGuest(@PathVariable String id, @Valid @RequestBody GuestRequest request) {
+        Guest updGuest = guestMapper.toEntity(request);
 
-        updGuest.setId(id);
-        guestMap.put(id, updGuest);
-        return ResponseEntity.status(HttpStatus.OK).body(updGuest);
-    }
+        Guest updatedGuest = guestService.updateGuest(id, updGuest);
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<Guest> patchGuest(@PathVariable String id, @RequestBody Guest patchData) {
-        Guest guest = guestMap.get(id);
-
-        if (guest == null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Guest not found");
-
-        //400 оно не кидает, пока PatchGuestRequest нет, так как вот совсем костыли будут
-        if (patchData.getName() != null)
-            guest.setName(patchData.getName());
-        if (patchData.getBirthDate() != null)
-            guest.setBirthDate(patchData.getBirthDate());
-        if (patchData.getPhoneNumber() != null)
-            guest.setPhoneNumber(patchData.getPhoneNumber());
-
-        return ResponseEntity.status(HttpStatus.OK).body(guestMap.put(id, guest));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGuest(@PathVariable String id) {
-        if (!guestMap.containsKey(id))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Guest not found");
-
-        guestMap.remove(id);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    public Map<String, Guest> getTestData() {
-        return guestMap;
+        return ResponseEntity.status(HttpStatus.OK).body(guestMapper.toResponse(updatedGuest));
     }
 }
