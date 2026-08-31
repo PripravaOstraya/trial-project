@@ -1,10 +1,9 @@
 package com.example.demo.services;
 
 import com.example.demo.entities.Guest;
+import com.example.demo.exceptions.GuestNotFoundException;
 import com.example.demo.repositories.GuestRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,11 +27,11 @@ public class GuestService {
     }
 
     public Guest getGuestById(String id) {
-        return  guestRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return  guestRepository.findById(id).orElseThrow(() -> new GuestNotFoundException());
     }
 
     public Guest updateGuest(String id, Guest updGuest) {
-        guestRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        guestRepository.findById(id).orElseThrow(() -> new GuestNotFoundException());
 
         updGuest.setId(id);
 
