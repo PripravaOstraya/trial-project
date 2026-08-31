@@ -11,15 +11,11 @@ import java.time.LocalDate;
 @Table(name = "guest")
 public class Guest {
     @Id
-    @NotNull
     private String id;
-    @NotBlank
     private String name;
     @Column(name = "birth_date")
-    @NotNull
     private LocalDate birthDate;
     @Column(name = "phone_number")
-    @NotBlank
     private String phoneNumber;
 
     public Guest(){
