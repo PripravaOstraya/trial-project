@@ -1,13 +1,13 @@
 package com.example.demo.entities;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotNull;
-import org.hibernate.validator.constraints.NotBlank;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
+@Entity
 @Table(name = "guest")
 public class Guest {
     @Id
