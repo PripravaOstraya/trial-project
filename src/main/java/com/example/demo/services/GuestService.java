@@ -12,7 +12,9 @@ import java.util.UUID;
 public class GuestService {
     private GuestRepository guestRepository;
 
-    public GuestService(GuestRepository guestRepository) {}
+    public GuestService(GuestRepository guestRepository) {
+        this.guestRepository = guestRepository;
+    }
 
     public List<Guest> listGuests(){
         return guestRepository.findAll();
