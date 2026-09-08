@@ -24,7 +24,7 @@ public class GuestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<GuestResponse>> listGuests(){
+    public ResponseEntity<List<GuestResponse>> listGuests() {
         List<Guest> guests = guestService.listGuests();
 
         return ResponseEntity.status(HttpStatus.OK).body(guestMapper.toResponseList(guests));

@@ -1,11 +1,10 @@
 package com.example.demo.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "guest")
@@ -17,9 +16,10 @@ public class Guest {
     private LocalDate birthDate;
     @Column(name = "phone_number")
     private String phoneNumber;
+    @ManyToMany(mappedBy = "guests")
+    private List<Booking> bookings = new ArrayList<>();
 
-    public Guest(){
-    }
+    public Guest() {}
 
     public Guest(String id, String name, LocalDate birthDate, String phoneNumber) {
         this.id = id;
@@ -40,6 +40,7 @@ public class Guest {
     public String getPhoneNumber(){
         return phoneNumber;
     }
+    public List<Booking> getBookings() { return bookings; }
 
     public void setId(String id) {
         this.id = id;
@@ -54,12 +55,12 @@ public class Guest {
         this.phoneNumber = phoneNumber;
     }
 
-    public String toString() {
-        return "Guest{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", birthDate=" + birthDate +
-                '}';
+    public void addBooking(Booking booking) {
+        bookings.add(booking);
+        booking.getGuests().add(this);
+    }
+    public void removeBooking(Booking booking) {
+        bookings.remove(booking);
+        booking.getGuests().remove(this);
     }
 }
