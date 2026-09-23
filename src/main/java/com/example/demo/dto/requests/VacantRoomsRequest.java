@@ -9,6 +9,10 @@ public record VacantRoomsRequest(@NotNull LocalDateTime from,
                                  @NotNull LocalDateTime to) {
     @AssertTrue
     public boolean isFromBeforeTo() {
-        return !from.isAfter(to);
+        boolean result = true;
+        if (from != null && to != null) {
+            result = !from.isAfter(to);
+        }
+        return result;
     }
 }
