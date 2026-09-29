@@ -3,12 +3,13 @@ package com.example.demo;
 import com.example.demo.entities.Booking;
 import com.example.demo.entities.Room;
 import com.example.demo.repositories.BookingRepository;
-import com.example.demo.repositories.GuestRepository;
 import com.example.demo.repositories.RoomRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -170,5 +171,45 @@ public class BookingControllerTests {
                         .param("from", from.toString())
                         .param("to", to.toString()))
                 .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-03T00:00, 2026-10-10T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-07T00:00, 2026-10-11T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-03T00:00, 2026-10-20T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-11T00:00, 2026-10-20T00:00"
+    })
+    void roomShouldBeOccupied(LocalDateTime bStart, LocalDateTime bEnd,
+                              LocalDateTime qStart, LocalDateTime qEnd) throws Exception{
+        Booking booking = new Booking("1", bStart, bEnd, null, roomRepository.findById("1").get());
+        bookingRepository.save(booking);
+        entityManager.flush();
+
+        mockMvc.perform(get("/rooms/vacant")
+                        .param("from", qStart.toString())
+                        .param("to", qEnd.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", not(hasItem("1"))));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-01T00:00, 2026-10-03T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-20T00:00, 2026-10-25T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-03T00:00, 2026-10-05T00:00",
+            "2026-10-05T00:00, 2026-10-15T00:00, 2026-10-15T00:00, 2026-10-20T00:00"
+    })
+    void roomShouldBeVacant(LocalDateTime bStart, LocalDateTime bEnd,
+                              LocalDateTime qStart, LocalDateTime qEnd) throws Exception{
+        Booking booking = new Booking("1", bStart, bEnd, null, roomRepository.findById("1").get());
+        bookingRepository.save(booking);
+        entityManager.flush();
+
+        mockMvc.perform(get("/rooms/vacant")
+                        .param("from", qStart.toString())
+                        .param("to", qEnd.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", hasItem("1")));
     }
 }
