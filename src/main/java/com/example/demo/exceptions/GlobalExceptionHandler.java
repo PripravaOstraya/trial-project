@@ -10,10 +10,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(GuestNotFoundException.class)
-    public ResponseEntity<ErrorResponse> GuestNotFoundExceptionHandler(GuestNotFoundException exception){
+    public ResponseEntity<ErrorResponse> GuestNotFoundExceptionHandler(GuestNotFoundException exception) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(HttpStatus.NOT_FOUND.value(),
+                        exception.getMessage()));
+    }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ErrorResponse> RoomNotFoundExceptionHandler(RoomNotFoundException exception) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(HttpStatus.NOT_FOUND.value(),
+                        exception.getMessage()));
+    }
+
+    @ExceptionHandler(RoomOccupiedException.class)
+    public ResponseEntity<ErrorResponse> RoomOccupiedExceptionHandler(RoomOccupiedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
                         exception.getMessage()));
     }
 
