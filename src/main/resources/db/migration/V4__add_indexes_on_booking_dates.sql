@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_booking_check_out_date_check_in_date ON booking (check_out_date, check_in_date);
