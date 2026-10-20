@@ -35,7 +35,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingResponse creatBooking(BookingRequest request) {
+    public BookingResponse createBooking(BookingRequest request) {
         Booking newBooking = bookingMapper.toEntity(request);
 
         List<String> occupiedRoomIds = bookingRepository.findOccupiedRoomIds(newBooking.getCheckInDate(),
