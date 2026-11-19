@@ -4,6 +4,7 @@ import com.example.demo.dto.requests.BookingRequest;
 import com.example.demo.dto.responses.BookingResponse;
 import com.example.demo.entities.Booking;
 import com.example.demo.entities.Room;
+import com.example.demo.exceptions.RoomNotFoundException;
 import com.example.demo.exceptions.RoomOccupiedException;
 import com.example.demo.mappers.BookingMapper;
 import com.example.demo.repositories.BookingRepository;
@@ -36,6 +37,8 @@ public class BookingService {
 
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
+        roomRepository.findByIdForUpdate(request.roomId()).orElseThrow(() -> new RoomNotFoundException());
+
         Booking newBooking = bookingMapper.toEntity(request);
 
         List<String> occupiedRoomIds = bookingRepository.findOccupiedRoomIds(newBooking.getCheckInDate(),

@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
     private JdbcTemplate jdbcTemplate;
@@ -28,6 +29,15 @@ public class RoomRepositoryCustomImpl implements RoomRepositoryCustom {
         return jdbcTemplate.query(sql,
                 this::mapRoom,
                 ids.toArray());
+    }
+
+    @Override
+    public Optional<Room> findByIdForUpdate(String id) {
+        String sql = "SELECT * FROM room WHERE id = ? FOR UPDATE";
+
+        return jdbcTemplate.query(sql,
+                this::mapRoom,
+                id).stream().findFirst();
     }
 
     private Room mapRoom(ResultSet rs, int rowNum) throws SQLException {
